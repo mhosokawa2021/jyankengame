@@ -1,0 +1,212 @@
+/* クリア */
+header,main {
+    border-bottom: unset;
+}
+
+@font-face
+{
+font-family: PixelMplus12_Regular;
+src: url('https://cdn.leafscape.be/PixelMplus/PixelMplus12-Regular_web.woff2')
+     format("woff2");
+}
+@font-face
+{
+font-family: PixelMplus12_Bold;
+src: url('https://cdn.leafscape.be/PixelMplus/PixelMplus12-Bold_web.woff2')
+     format("woff2");
+}
+
+/* ここから */
+
+body{
+    font-family: 'PixelMplus12_Regular';
+    background-color: black;
+    color: #fff;
+    letter-spacing: 0.3rem;
+    width: 100%;
+    position: relative;
+}
+
+h1{
+    text-align: center;
+    margin-top: 28px;
+}
+
+.stage{
+    width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+}
+
+.judgment{
+    position: absolute;
+    top: 20px;
+    right: 21px;
+    border: 3px solid #fff;
+    padding: 6px 0px 6px 6px;
+    box-sizing: border-box;
+    
+}
+
+.select-btn-wrapper{
+    width: 800px;
+    margin: 0 auto;
+}
+
+ul.select_btn{
+    font-family: 'PixelMplus12_Bold';
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+ul.select_btn > li {
+    display: inline-block;
+}
+
+ul.select_btn > li {
+    background-color: black;
+    color: #fff;
+    border: 5px solid #fff;
+    padding: 10px 5px;
+    border-radius: 5px;
+    margin-right: 20px;
+    width: 33.333%;
+    text-align: center;
+}
+
+ul.select_btn > li:hover{
+    background-color: white;
+    color: black;
+    border: 5px solid #fff;
+}
+
+ul.select_btn > li:last-child{
+    margin-right: 0px;
+}
+
+/*  */
+.you_action{
+    width: 800px;
+    margin: 0 auto;
+    border: 5px solid #fff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-top: 10px;
+}
+
+.pc_action{
+    width: 800px;
+    margin: 0 auto;
+    border: 5px solid #fff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-top: 10px;
+}
+
+.damage-info{
+    width: 800px;
+    margin: 0 auto;
+    border: 3px solid #fff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-bottom: 13px;
+    text-align: center;
+}
+
+.syouhai_box{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    color: #fff;
+    display: none;
+    background-color: black;
+    z-index: -999;
+}
+
+.syouhai_msg{
+    text-align: center;
+    padding-top: 180px;
+}
+
+.img_finger{
+    text-align: center;
+    height: 400px;
+}
+
+.again{
+    display: block;
+    width: 200px;
+    padding: 5px;
+    border: 3px solid #FFF;
+    border-radius: 5px;
+    margin: 0 auto;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    margin-top: 45px;
+}
+
+.img_finger img {
+    animation-name: yura_yura;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-duration: 3s;
+}
+
+.img_finger img.gu {
+    padding-top: 55px;
+}
+
+.btn{
+    cursor: pointer !important;
+}
+
+/* .act_status{
+    border: 2px solid #fff;
+    width: 249px;
+    padding: 3px 0 3px 13px;
+    box-sizing: border-box;
+    margin-bottom: 9px;
+} */
+
+@keyframes yura_yura {
+    0% {
+        transform: translate(0,0px);
+    }
+
+    100% {
+        transform: translate(0,-15px)
+    }
+}
+
+/* hp関連 */
+.hp_meter_wrapper {
+    width: 205px;
+    background-color: white;
+    height: 10px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    margin: 5px 0 5px 0px;
+}
+
+#hp_meter_you{
+    width: 100%;
+    background-color: red;
+    transition: all 300ms 0s ease;
+    height: 10px;
+}
+
+#hp_meter_pc{
+    width: 100%;
+    background-color: red;
+    transition: all 300ms 0s ease;
+    height: 10px;
+}

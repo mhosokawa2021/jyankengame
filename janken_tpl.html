@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<script src="js/jquery-2.1.3.min.js"></script>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/janken_tpl.css">
+<title>じゃんけん</title>
+</head>
+<body>
+  <h1>ジャンケンようかい</h1>
+  <div class="stage">
+    <div class="act_status"><span class="actor_you">ここに名前</span>のHP:<span id="your_hp">ここにHP</span> PW:<span id="your_pg">ここにPG</span></div>
+    <div class="hp_meter_wrapper">
+      <div id="hp_meter_you"></div>
+    </div>
+    <div class="act_status"><span class="actor_pc">ここに名前</span>のHP:<span id="pc_hp">ここにHP</span> PW:<span id="pc_pg">ここにPG</span></div>
+    <div class="hp_meter_wrapper">
+      <div id="hp_meter_pc"></div>
+    </div>
+    <div id="img_finger" class="img_finger"><img src="img/finger_pose_4.gif" alt=""></div>
+    <div id="judgment" class="judgment">
+    <ul>
+      <li>勝ち　:0回</li>
+      <li>負け　:0回</li>
+      <li>あいこ:0回</li>
+    </ul>
+  </div>
+  </div>
+  <div id="damage-info" class="damage-info">ジャンケンようかいが、あらわれた！！</div>
+  <div class="select-btn-wrapper">
+    <ul class="select_btn">
+      <li id="cho_btn" class="btn">こうげき(チョキ)</li>
+      <li id="gu_btn" class="btn">まもる(グー)</li>
+      <li id="par_btn" class="btn">ためる(パー)</li>
+    </ul>
+  </div>
+  <div class="you_action"><span class="actor_you">ここに名前</span>の行動:<span id="your_hands"></span></div>
+  <div class="pc_action"><span class="actor_pc">ここに名前</span>の行動:<span id="pc_hands"></span></div>
+  <div id="error"></div>
+  <div class="syouhai_box fade">
+    <p id="syouhai_msg" class="syouhai_msg">勝負終了</p>
+    <a href="" class="again">もう一度</a>
+  </div>
+
+<script>
+//じゃんけん用のSCRIPTを書いてください
+
+// 定数
+// jyanken
+const CHOKI = "チョキ（こうげき）";
+const GU = "グー（まもる）";
+const PAR = "パー（ためる）";
+const PC_MOVE = "敵の行動:";
+const YOUR_MOVE = "あなたの行動:";
+// pw_gage
+const PW_GAGE_MAX = 3;
+const PW_BOTH = "both";
+const PW_YOU = "you";
+const PW_PC = "pc";
+// セレクタ名
+const SELECT0R_YOUR_HANDS = "#your_hands";
+const SELECT0R_PC_HANDS = "#pc_hands";
+const SELECTOR_DAMAGE_INFO ="#damage-info";
+const SELECTOR_INFO = "#info";
+const SELECTOR_INFO_YOU = "#your_pg";
+const SELECTOR_INFO_PC = "#pc_pg";
+const SELECTOR_JUDGEMENT = "#judgment";
+const SELECTOR_YOUR_NAME = ".actor_you";
+const SELECTOR_YOUR_HP = "#your_hp";
+const SELECTOR_PC_NAME = ".actor_pc";
+const SELECTOR_PC_HP = "#pc_hp";
+// ダメージ設定
+const DAMAGE_NUM_LOW = 25;
+const DAMAGE_NUM_DEFAULT = 50;
+const DAMAGE_NUM_HISSATSU = 80;
+
+// 勝敗管理
+let win = 0;
+let lose = 0;
+let even = 0;
+
+// パワーゲージ
+let your_pw_gage = 0;
+let pc_pw_gage = 0;
+
+//------------------
+// 関数名:jyanken
+// 引数:pc_hands(String), your_hands(String)
+// 戻り値:なし
+//------------------
+function jyanken (pc_hands, your_hands) {
+  if (pc_hands ==  CHOKI && your_hands == CHOKI) {
+        even += 1;
+        $("#img_finger").html('<img src="img/finger_pose_tyo.gif" alt="">');
+        $("#damage-info").html("あいこ！！おたがいの攻撃がぶつかり、ダメージゼロ!!");
+
+      } else if (pc_hands == GU && your_hands == GU){
+        even += 1;
+        $("#img_finger").html('<img src="img/finger_pose_gu.gif" alt="" class="gu">');
+        $("#damage-info").html("あいこ！！ふたりとも動かず、ダメージゼロ!!");
+
+      } else if (pc_hands == PAR && your_hands == PAR){
+        even += 1;
+        $("#img_finger").html('<img src="img/finger_pose_pa.gif" alt="">');
+        $("#damage-info").html("あいこ！！ふたりとも動かず、ダメージゼロ!!");
+
+      } else if ( pc_hands == CHOKI && your_hands == GU ){
+        win += 1;
+        // まもる（ぐー）と攻撃（チョキ）の時はHP減少:小
+        $("#img_finger").html('<img src="img/finger_pose_tyo.gif" alt="">');
+    
+        // hpゲージの処理
+        let c_hp = actor_pc.getHp() - DAMAGE_NUM_LOW + "%";
+        $("#hp_meter_pc").css('width', c_hp );
+
+        actor_pc.reduceActorHp(DAMAGE_NUM_LOW);
+        $("#damage-info").html("攻撃をこらえた!!" + actor_pc.getName() + "に" + DAMAGE_NUM_LOW + "のダメージ!!");
+
+      } else if ( pc_hands == CHOKI && your_hands == PAR ){
+        lose += 1;
+        // 通常ダメージ
+        $("#img_finger").html('<img src="img/finger_pose_tyo.gif" alt="">');
+
+        // hpゲージの処理
+        let c_hp = actor_you.getHp() - DAMAGE_NUM_DEFAULT + "%";
+        $("#hp_meter_you").css('width', c_hp );
+
+        actor_you.reduceActorHp(DAMAGE_NUM_DEFAULT);
+        $("#damage-info").html("体勢をくずされた!!" + actor_you.getName() + "に" + DAMAGE_NUM_DEFAULT + "のダメージ!!");
+
+      } else if ( pc_hands == PAR && your_hands == CHOKI ){
+        win += 1;
+        // 通常ダメージ
+        $("#img_finger").html('<img src="img/finger_pose_pa.gif" alt="">');
+
+        // hpゲージの処理
+        let c_hp = actor_pc.getHp() - DAMAGE_NUM_DEFAULT + "%";
+        $("#hp_meter_pc").css('width', c_hp );
+
+        actor_pc.reduceActorHp(DAMAGE_NUM_DEFAULT);
+        $("#damage-info").html("体勢を崩した!!" + actor_pc.getName() + "に" + DAMAGE_NUM_DEFAULT + "のダメージ!!");
+
+      } else if ( pc_hands == PAR && your_hands == GU ){
+        lose += 1;
+        // ためる(パー)とまもる(グー)の組み合わせの時にはHPは変わらない
+        $("#img_finger").html('<img src="img/finger_pose_pa.gif" alt="">');
+        $("#damage-info").html( actor_pc.getName() + "は様子をうかがっている。");
+
+      } else if ( pc_hands == GU && your_hands == PAR ){
+        win += 1;
+        // ためる(パー)とまもる(グー)の組み合わせの時にはHPは変わらない
+        $("#img_finger").html('<img src="img/finger_pose_gu.gif" alt="" class="gu">');
+        $("#damage-info").html( actor_pc.getName() + "は様子をうかがっている。");
+
+      } else if ( pc_hands == GU && your_hands == CHOKI ){
+        lose += 1;
+        // まもる（ぐー）と攻撃（チョキ）の時はHP減少:小
+
+        // hpゲージの処理
+        let c_hp = actor_you.getHp() - DAMAGE_NUM_LOW + "%";
+        $("#hp_meter_you").css('width', c_hp );
+
+        actor_you.reduceActorHp(DAMAGE_NUM_LOW);
+        $("#img_finger").html('<img src="img/finger_pose_gu.gif" alt="" class="gu">');
+        $("#damage-info").html("ガードされた!!" + actor_you.getName() + "に" + DAMAGE_NUM_LOW + "のダメージ!!");
+
+      } else {
+          $("#error").html('エラー発生');
+      }
+}
+
+//------------------
+// 関数名:random_hand
+// 引数:なし
+// 戻り値:pc_hands(String)
+//------------------
+function random_hand(){
+    // 乱数生成
+    const RANDOM_HAND = Math.ceil( Math.random() * 3 );// 1-3
+    let pc_hands = '';
+    
+    // グー:1 チョキ:2 パー:3
+      if (RANDOM_HAND == 1) {
+          pc_hands = GU;
+      } else if (RANDOM_HAND == 2){
+          pc_hands = CHOKI;
+      } else {
+          pc_hands = PAR;
+      }
+  return pc_hands;
+}
+
+//------------------
+// 関数名:power_check
+// 内容:必殺技ゲージ判定、ダメージ処理
+// 引数:***
+// 戻り値:***
+//------------------
+
+function power_check(your_pw_gage,pc_pw_gage){
+  // ゲージがMAXの者は発動
+  const p = power_who_check(your_pw_gage,pc_pw_gage);
+  if ( p == PW_BOTH ){
+    power_reset();
+    console.log("あなたと"+ actor_pc.getName() + "が同時に必殺技をくり出した！！");
+
+    // hpゲージの処理
+    let c_hp = 0;
+      c_hp = actor_you.getHp() - DAMAGE_NUM_HISSATSU + "%";
+    $("#hp_meter_you").css('width', c_hp );
+      c_hp = actor_pc.getHp() - DAMAGE_NUM_HISSATSU + "%";
+    $("#hp_meter_pc").css('width', c_hp );
+
+    // ダメージ処理
+    actor_you.reduceActorHp(DAMAGE_NUM_HISSATSU);
+    actor_pc.reduceActorHp(DAMAGE_NUM_HISSATSU);
+
+    $("#damage-info").html("あなたと"+ actor_pc.getName() +"が同時に必殺技をくり出した！！おたがいに" + DAMAGE_NUM_HISSATSU + "の大ダメージ!!");
+    return true;
+
+  } else if ( p == PW_YOU ){
+    power_reset();
+    console.log("あなたの必殺技！！");
+
+    let c_hp = actor_pc.getHp() - DAMAGE_NUM_HISSATSU + "%";
+    $("#hp_meter_pc").css('width', c_hp );
+
+    // ダメージ処理
+    actor_pc.reduceActorHp(DAMAGE_NUM_HISSATSU);
+    $("#damage-info").html("必殺技!!" + actor_pc.getName() + "に" + DAMAGE_NUM_HISSATSU + "の大ダメージ!!");
+    return true;
+
+  } else if ( p == PW_PC ){
+    power_reset();
+    console.log("モンスターの必殺技！！");
+
+    let c_hp = actor_you.getHp() - DAMAGE_NUM_HISSATSU + "%";
+    $("#hp_meter_you").css('width', c_hp );
+
+    // ダメージ処理
+    actor_you.reduceActorHp(DAMAGE_NUM_HISSATSU);
+    $("#damage-info").html("必殺技!!" + actor_you.getName() + "に" + DAMAGE_NUM_HISSATSU + "の大ダメージ!!");
+    return true;
+
+  }else{
+    return false;
+  } 
+}
+
+//------------------
+// 関数名:power_who_check
+// 内容:誰が必殺技を出すか判定する
+// 引数:***
+// 戻り値:***
+//------------------
+
+function power_who_check(your_pw_gage,pc_pw_gage){
+
+  if( your_pw_gage == PW_GAGE_MAX && pc_pw_gage == PW_GAGE_MAX ){
+    // 両方のゲージがマックス
+    return PW_BOTH;
+
+  } else if( your_pw_gage == PW_GAGE_MAX ){
+    // あなたのゲージがマックス
+    return PW_YOU;
+
+  } else if( pc_pw_gage == PW_GAGE_MAX ){
+    // PCのゲージがマックス
+    return PW_PC;
+
+  } else {
+    // 該当者なし
+    return 0;
+  }
+}
+
+//------------------
+// 関数名:power_set
+// 内容: 「ためる」が成功した時にゲージを加算する
+//      「ためる」間に攻撃されるとゲージをリセット
+// 引数:***
+// 戻り値:***
+//------------------
+
+function power_set (pc_hands, your_hands) {
+  if( pc_hands == PAR && your_hands == PAR ){
+    // 両方が成功 PC:ためる YOU:ためる
+    console.log("両方が成功 PC:ためる YOU:ためる");
+    pc_pw_gage += 1;
+    your_pw_gage += 1;
+  } else if ( pc_hands == PAR && your_hands != CHOKI) {
+    // PCが成功 PC:ためる YOU:グー
+    pc_pw_gage += 1;
+  } else if ( pc_hands == PAR && your_hands == CHOKI) {
+    // PCリセット PC:ためる YOU:チョキ
+    pc_pw_gage = 0;
+  } else if ( your_hands == PAR && pc_hands != CHOKI) {
+    // YOUが成功 PC:グー YOU:ためる
+    console.log("YOUが成功 PC:グー YOU:ためる");
+    your_pw_gage += 1;
+  } else if ( your_hands == PAR && pc_hands == CHOKI) {
+    // PCリセット PC:チョキ YOU:ためる
+    your_pw_gage = 0;
+  }
+}
+
+//------------------
+// 関数名:power_reset
+// 内容:パワーゲージをリセットする
+// 引数:***
+// 戻り値:***
+//------------------
+
+function power_reset () {
+    pc_pw_gage = 0;
+    your_pw_gage = 0;
+}
+
+//------------------
+// 関数名:show_hands_info
+// 内容:出した手の情報を表示する
+// 引数:***
+// 戻り値:***
+//------------------
+
+function show_hands_info (pc_hands, your_hands) {
+  $( SELECT0R_YOUR_HANDS ).html(your_hands);
+  $( SELECT0R_PC_HANDS ).html(pc_hands);
+}
+
+//------------------
+// 関数名:show_pw_gage_info
+// 内容:パワーゲージの情報を表示する
+// 引数:***
+// 戻り値:***
+//------------------
+
+function show_pw_gage_info () {
+  // $( SELECTOR_INFO ).html(actor_pc.getName() + 'のパワーゲージ' + pc_pw_gage + ','+ actor_you.getName() +'のパワーゲージ'+ your_pw_gage);
+  $( SELECTOR_INFO_YOU ).html(your_pw_gage);
+  $( SELECTOR_INFO_PC).html(pc_pw_gage);
+}
+
+//------------------
+// 関数名:show_battle_history_info
+// 内容:出した手の情報を表示する
+// 引数:***
+// 戻り値:***
+//------------------
+
+function show_battle_history_info () {
+  $( SELECTOR_JUDGEMENT ).html(
+                                '<ul><li>勝ち　:' + win + '回</li>' + 
+                                '<li>負け　:'+ lose + '回</li>' +
+                                '<li>あいこ:' + even +'回</li></ul>')}
+
+//------------------
+// 関数名:show_battle_info
+// 内容:勝負の情報を表示する
+// 引数:***
+// 戻り値:***
+//------------------
+
+function show_battle_info (pc_hands, your_hands) {
+    // 必殺技ゲージ出力
+    show_pw_gage_info();
+    // バトル履歴出力
+    show_battle_history_info();
+}
+
+//------------------
+// 関数名:check_actor_live
+// 内容:キャラが戦闘不能かどうか判定する
+// 引数:***
+// 戻り値:***
+//------------------
+
+function check_actor_live (is_you_live, is_pc_live) {
+  if( is_you_live && is_pc_live ){
+      // 両方が死亡
+      $(".syouhai_box").css('z-index','999');
+      $(".syouhai_box").fadeIn(1000);
+      $(".syouhai_msg").html("相打ち!!両方が死にました。");
+    } else if( is_you_live ) {
+      // あなたが死亡
+      $(".syouhai_box").css('z-index','999');
+      $(".syouhai_box").fadeIn(1000);
+      $(".syouhai_msg").html("敗北！！" + actor_you.getName() + "が死にました。");
+    } else if( is_pc_live ){
+      // あなたが死亡
+      $(".syouhai_box").css('z-index','999');
+      $(".syouhai_box").fadeIn(1000);
+      $(".syouhai_msg").html("勝利！！" + actor_pc.getName() + "が死にました。");
+    } else {
+      console.log("どちらも生きている");
+    }
+}
+
+// 登場人物クラス
+class Actor {
+ constructor(name, hp) {
+     this.name = name;
+     this.hp = hp;
+     this.damage = 0;
+ }
+
+ // 名前取得
+  getName() {
+    return this.name;
+  }
+ // HP取得
+  getHp() {
+    return this.hp;
+  }
+ // セッター
+  setHp(hp){
+    this.hp = hp;
+  }
+
+  // 戦闘不能かどうかの判定処理
+  checkActorHpIsZero() {
+    if( this.hp <= 0 ) {
+      return true;
+    }
+    return false;
+  }
+
+  // ダメージを受けた時の減算処理
+  reduceActorHp( damage ) {
+    if( damage != 0 ) {
+      this.setHp( this.hp - damage );
+    }
+  }
+}
+
+let actor_you = new Actor('あなた', 100);
+let actor_pc = new Actor('ようかい', 100);
+
+// 読み込み時の体力表示
+$(document).ready(function(){
+  $( SELECTOR_YOUR_NAME ).html(actor_you.getName());
+  $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+  $( SELECTOR_PC_NAME ).html(actor_pc.getName());
+  $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+  $( SELECTOR_INFO_YOU ).html("0");
+  $( SELECTOR_INFO_PC ).html("0");
+});
+
+$("#gu_btn").on("click", function(){
+    // あなたの手
+    const YOUR_HANDS = GU;
+    // コンピューターの手
+    const PC_HANDS = random_hand();
+    // じゃんけん
+    jyanken(PC_HANDS,YOUR_HANDS);
+
+    // 必殺技ゲージ更新
+    power_set(PC_HANDS,YOUR_HANDS);
+    // 必殺技判定
+    if(power_check(your_pw_gage,pc_pw_gage)){
+    // 必殺技発動時に更新
+      $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+      $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+    // 必殺技発動時にリセット
+      $( SELECT0R_YOUR_HANDS ).html("");
+      $( SELECT0R_PC_HANDS ).html("");
+    } else {
+    // 出した手の情報
+      show_hands_info(PC_HANDS,YOUR_HANDS);
+    }
+
+    // 結果表示
+    show_battle_info(PC_HANDS,YOUR_HANDS);
+
+    // HP更新
+    if (actor_you.getHp() <= 0) {
+      actor_you.setHp(0);
+    }
+    if (actor_pc.getHp() <= 0) {
+      actor_pc.setHp(0);
+    }
+    $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+    $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+
+    // 戦闘不能判定
+    check_actor_live(actor_you.checkActorHpIsZero(),actor_pc.checkActorHpIsZero());
+
+  });
+
+$("#cho_btn").on("click", function(){
+    // あなたの手
+    const YOUR_HANDS = CHOKI;
+    // コンピューターの手
+    const PC_HANDS = random_hand();
+    // じゃんけん
+    jyanken(PC_HANDS,YOUR_HANDS);
+    
+    // 必殺技ゲージ更新
+    power_set(PC_HANDS,YOUR_HANDS);
+    // 必殺技判定
+    if (power_check(your_pw_gage,pc_pw_gage)){
+    // 必殺技発動時に更新
+      $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+      $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+    // 必殺技発動時にリセット
+      $( SELECT0R_YOUR_HANDS ).html("");
+      $( SELECT0R_PC_HANDS ).html("");
+    } else {
+    // 出した手の情報
+      show_hands_info(PC_HANDS,YOUR_HANDS);
+    }
+
+    // 結果表示
+    show_battle_info(PC_HANDS,YOUR_HANDS);
+
+    // HP更新
+    if (actor_you.getHp() <= 0) {
+      actor_you.setHp(0);
+    }
+    if (actor_pc.getHp() <= 0) {
+      actor_pc.setHp(0);
+    }
+    $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+    $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+
+    // 戦闘不能判定
+    check_actor_live(actor_you.checkActorHpIsZero(),actor_pc.checkActorHpIsZero());
+
+  });
+
+$("#par_btn").on("click", function(){
+    // あなたの手
+    const YOUR_HANDS = PAR;
+    // コンピューターの手
+    const PC_HANDS = random_hand();
+    // じゃんけん
+    jyanken(PC_HANDS,YOUR_HANDS);
+
+    // 必殺技ゲージ更新
+    power_set(PC_HANDS,YOUR_HANDS);
+    // 必殺技判定
+    if (power_check(your_pw_gage,pc_pw_gage)){
+    // 必殺技発動時に更新
+      $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+      $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+    // 必殺技発動時にリセット
+      $( SELECT0R_YOUR_HANDS ).html("");
+      $( SELECT0R_PC_HANDS ).html("");
+    } else {
+    // 出した手の情報
+      show_hands_info(PC_HANDS,YOUR_HANDS);
+    }
+
+    // 結果表示
+    show_battle_info(PC_HANDS,YOUR_HANDS);
+
+    // HP更新
+    if (actor_you.getHp() <= 0) {
+      actor_you.setHp(0);
+    }
+    if (actor_pc.getHp() <= 0) {
+      actor_pc.setHp(0);
+    }
+    $( SELECTOR_YOUR_HP ).html(actor_you.getHp());
+    $( SELECTOR_PC_HP ).html(actor_pc.getHp());
+
+    // 戦闘不能判定
+    check_actor_live(actor_you.checkActorHpIsZero(),actor_pc.checkActorHpIsZero());
+
+  });
+    
+
+</script>
+</body>
+</html>
